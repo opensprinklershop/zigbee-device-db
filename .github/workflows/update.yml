@@ -1,0 +1,95 @@
+name: Update Zigbee Device Database
+
+on:
+  schedule:
+    # Run every Monday at 04:00 UTC
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force update even if version unchanged'
+        type: boolean
+        default: false
+
+jobs:
+  update-db:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scripts/package-lock.json
+
+      - name: Get current package version
+        id: current
+        run: |
+          cd scripts
+          CURRENT=$(node -p "require('./node_modules/zigbee-herdsman-converters/package.json').version" 2>/dev/null || echo "none")
+          echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "Current installed version: $CURRENT"
+
+      - name: Update zigbee-herdsman-converters
+        run: |
+          cd scripts
+          npm update zigbee-herdsman-converters
+
+      - name: Get new package version
+        id: new
+        run: |
+          cd scripts
+          NEW=$(node -p "require('./node_modules/zigbee-herdsman-converters/package.json').version")
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+          echo "New version: $NEW"
+
+      - name: Check if update needed
+        id: needs_update
+        run: |
+          if [ "${{ steps.current.outputs.version }}" = "${{ steps.new.outputs.version }}" ] && \
+             [ "${{ github.event.inputs.force }}" != "true" ] && \
+             [ -f "dist/devices.json" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No version change (${{ steps.new.outputs.version }}), skipping regeneration."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Update needed: ${{ steps.current.outputs.version }} → ${{ steps.new.outputs.version }}"
+          fi
+
+      - name: Generate device database
+        if: steps.needs_update.outputs.skip != 'true'
+        run: |
+          cd scripts
+          node fetch_devices.js
+
+      - name: Show output stats
+        if: steps.needs_update.outputs.skip != 'true'
+        run: |
+          ls -lh dist/
+          echo "Fingerprint count: $(node -p "Object.keys(JSON.parse(require('fs').readFileSync('dist/devices.json','utf8')).by_fingerprint).length")"
+
+      - name: Commit and push
+        if: steps.needs_update.outputs.skip != 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dist/ scripts/package-lock.json scripts/package.json
+          git diff --cached --quiet || git commit -m "chore: update Zigbee DB to zigbee-herdsman-converters v${{ steps.new.outputs.version }}"
+          git push
+
+      - name: Summary
+        run: |
+          echo "## Zigbee DB Update" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.needs_update.outputs.skip }}" = "true" ]; then
+            echo "No changes — already at v${{ steps.new.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Updated: **${{ steps.current.outputs.version }}** → **${{ steps.new.outputs.version }}**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "$(cat dist/devices.json | python3 -c "import sys,json; d=json.load(sys.stdin); m=d['_meta']; print(f'Definitions: {m[\"count\"][\"total\"]}, Fingerprints: {m[\"count\"][\"fingerprints\"]}')" 2>/dev/null || echo "")" >> $GITHUB_STEP_SUMMARY
+          fi

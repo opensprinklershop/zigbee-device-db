@@ -1,0 +1,17 @@
+{
+  "name": "zigbee-device-db-scripts",
+  "version": "1.0.0",
+  "description": "Fetch Zigbee device metadata from zigbee-herdsman-converters and generate OpenSprinkler-compatible DB",
+  "main": "fetch_devices.js",
+  "scripts": {
+    "fetch": "node fetch_devices.js",
+    "build": "node fetch_devices.js"
+  },
+  "dependencies": {
+    "zigbee-herdsman-converters": "^21.38.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}
