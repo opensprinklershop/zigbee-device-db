@@ -1,12 +1,12 @@
 {
   "_meta": {
-    "generated": "2026-02-28T21:38:40.947Z",
+    "generated": "2026-03-14T04:10:31.708Z",
     "source": "zigbee-herdsman-converters",
     "version": "21.38.0",
     "count": {
       "total": 3421,
       "fingerprints": 1360,
-      "models": 4210
+      "models": 4211
     }
   },
   "by_fingerprint": {
@@ -56997,9 +56997,11 @@
       "endpoint": 1
     },
     "_TZE284_nhgdf6qr|TS0601": {
-      "vendor": "Tuya",
-      "model": "TS0601_soil_3",
-      "description": "Soil sensor",
+      "vendor": "GIEX",
+      "model": "GX04",
+      "description": "GX04 soil moisture sensor / water timer",
+      "is_tuya": true,
+      "endpoint": 1,
       "sensors": [
         {
           "name": "soil_moisture",
@@ -57024,33 +57026,7 @@
           "endpoint": 1,
           "dp": 5,
           "factor": 1,
-          "divider": 1,
-          "is_tuya_dp": true
-        },
-        {
-          "name": "temperature_unit",
-          "description": "temperature unit",
-          "unit": "",
-          "unitid": 0,
-          "cluster_id": "0xEF00",
-          "attr_id": "0x0009",
-          "endpoint": 1,
-          "dp": 9,
-          "factor": 1,
-          "divider": 1,
-          "is_tuya_dp": true
-        },
-        {
-          "name": "battery_state",
-          "description": "battery state",
-          "unit": "",
-          "unitid": 0,
-          "cluster_id": "0xEF00",
-          "attr_id": "0x000e",
-          "endpoint": 1,
-          "dp": 14,
-          "factor": 1,
-          "divider": 1,
+          "divider": 10,
           "is_tuya_dp": true
         },
         {
@@ -57066,9 +57042,7 @@
           "divider": 1,
           "is_tuya_dp": true
         }
-      ],
-      "is_tuya": true,
-      "endpoint": 1
+      ]
     },
     "_TZE284_ap9owrsa|TS0601": {
       "vendor": "Tuya",
@@ -204799,6 +204773,56 @@
         ],
         "is_tuya": false,
         "endpoint": 1
+      }
+    ],
+    "GX04": [
+      {
+        "vendor": "GIEX",
+        "model": "GX04",
+        "description": "GX04 soil moisture sensor / water timer",
+        "is_tuya": true,
+        "endpoint": 1,
+        "sensors": [
+          {
+            "name": "soil_moisture",
+            "description": "soil moisture",
+            "unit": "%",
+            "unitid": 1,
+            "cluster_id": "0xEF00",
+            "attr_id": "0x0003",
+            "endpoint": 1,
+            "dp": 3,
+            "factor": 1,
+            "divider": 1,
+            "is_tuya_dp": true
+          },
+          {
+            "name": "temperature",
+            "description": "temperature",
+            "unit": "°C",
+            "unitid": 2,
+            "cluster_id": "0xEF00",
+            "attr_id": "0x0005",
+            "endpoint": 1,
+            "dp": 5,
+            "factor": 1,
+            "divider": 10,
+            "is_tuya_dp": true
+          },
+          {
+            "name": "battery",
+            "description": "battery",
+            "unit": "%",
+            "unitid": 5,
+            "cluster_id": "0xEF00",
+            "attr_id": "0x000f",
+            "endpoint": 1,
+            "dp": 15,
+            "factor": 1,
+            "divider": 1,
+            "is_tuya_dp": true
+          }
+        ]
       }
     ]
   }

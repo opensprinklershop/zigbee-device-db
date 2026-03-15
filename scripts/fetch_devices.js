@@ -233,6 +233,48 @@ for (const def of definitions) {
   }
 }
 
+// ─── manual device entries (not yet in zigbee-herdsman-converters) ──────────
+// Add devices here when the fingerprint is known but not in the library.
+const MANUAL_DEVICES = [
+  {
+    // GIEX GX04 garden irrigation controller with soil moisture sensor
+    // Firmware-identified: manufacturer=_TZE284_nhgdf6qr, modelID=TS0601
+    fingerprint: '_TZE284_nhgdf6qr|TS0601',
+    entry: {
+      vendor:      'GIEX',
+      model:       'GX04',
+      description: 'GX04 soil moisture sensor / water timer',
+      is_tuya:     true,
+      endpoint:    1,
+      sensors: [
+        { name: 'soil_moisture', description: 'soil moisture', unit: '%',  unitid: 1,
+          cluster_id: '0xEF00', attr_id: '0x0003', endpoint: 1,
+          dp: 3,  factor: 1, divider: 1,  is_tuya_dp: true },
+        { name: 'temperature',   description: 'temperature',   unit: '°C', unitid: 2,
+          cluster_id: '0xEF00', attr_id: '0x0005', endpoint: 1,
+          dp: 5,  factor: 1, divider: 10, is_tuya_dp: true },
+        { name: 'battery',       description: 'battery',       unit: '%',  unitid: 5,
+          cluster_id: '0xEF00', attr_id: '0x000f', endpoint: 1,
+          dp: 15, factor: 1, divider: 1,  is_tuya_dp: true },
+      ],
+    },
+  },
+];
+
+for (const { fingerprint, entry } of MANUAL_DEVICES) {
+  const hadFingerprint = !!db.by_fingerprint[fingerprint];
+  db.by_fingerprint[fingerprint] = entry;
+  if (!hadFingerprint) fpCount++;
+
+  const m = entry.model;
+  if (m) {
+    if (!db.by_model[m]) db.by_model[m] = [];
+    const dup = db.by_model[m].some(e => e.vendor === entry.vendor && e.model === entry.model);
+    if (!dup) db.by_model[m].push(entry);
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 db._meta.count.total        = totalDefs;
 db._meta.count.fingerprints = fpCount;
 db._meta.count.models       = Object.keys(db.by_model).length;
